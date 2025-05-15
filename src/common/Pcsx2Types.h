@@ -4,7 +4,6 @@
 #pragma once
 
 #include <cstdint>
-#include <stdlib.h>
 
 // --------------------------------------------------------------------------------------
 //  Basic Atomic Types

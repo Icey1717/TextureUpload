@@ -48,11 +48,3 @@
 #else
 #include <malloc.h> // alloca
 #endif
-
-#ifndef _MSC_VER
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#include <tmmintrin.h>
-#include <smmintrin.h>
-#include <immintrin.h>
-#endif

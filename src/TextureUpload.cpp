@@ -1,7 +1,10 @@
 #include "TextureUpload.h"
 #include "GSLocalMemory.h"
 
+#include <windows.h>
 #include "common/Assertions.h"
+
+#pragma comment(lib, "mincore") 
 
 namespace TextureUpload
 {
@@ -75,10 +78,6 @@ uint8_t* TextureUpload::GetClut()
 	return reinterpret_cast<uint8_t*>(const_cast<u32*>(pal));
 }
 
-#ifdef _WIN32
-#include <windows.h>
-#pragma comment(lib, "mincore") 
-
 static HANDLE s_fh = NULL;
 
 void* GSAllocateWrappedMemory(size_t size, size_t repeat)
@@ -143,58 +142,3 @@ void GSFreeWrappedMemory(void* ptr, size_t size, size_t repeat)
 	VirtualFreeEx(GetCurrentProcess(), ptr, 0, MEM_RELEASE);
 	s_fh = NULL;
 }
-#else
-
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-static int s_shm_fd = -1;
-
-void* GSAllocateWrappedMemory(size_t size, size_t repeat)
-{
-	pxAssert(s_shm_fd == -1);
-
-	const char* file_name = "/GS.mem";
-	s_shm_fd = shm_open(file_name, O_RDWR | O_CREAT | O_EXCL, 0600);
-	if (s_shm_fd != -1)
-	{
-		shm_unlink(file_name); // file is deleted but descriptor is still open
-	}
-	else
-	{
-		fprintf(stderr, "Failed to open %s due to %s\n", file_name, strerror(errno));
-		return nullptr;
-	}
-
-	if (ftruncate(s_shm_fd, repeat * size) < 0)
-		fprintf(stderr, "Failed to reserve memory due to %s\n", strerror(errno));
-
-	void* fifo = mmap(nullptr, size * repeat, PROT_READ | PROT_WRITE, MAP_SHARED, s_shm_fd, 0);
-
-	for (size_t i = 1; i < repeat; i++)
-	{
-		void* base = (u8*)fifo + size * i;
-		u8* next = (u8*)mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, s_shm_fd, 0);
-		if (next != base)
-			fprintf(stderr, "Fail to mmap contiguous segment\n");
-	}
-
-	return fifo;
-}
-
-void GSFreeWrappedMemory(void* ptr, size_t size, size_t repeat)
-{
-	pxAssert(s_shm_fd >= 0);
-
-	if (s_shm_fd < 0)
-		return;
-
-	munmap(ptr, size * repeat);
-
-	close(s_shm_fd);
-	s_shm_fd = -1;
-}
-
-#endif

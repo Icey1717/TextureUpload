@@ -139,11 +139,3 @@ static constexpr s64 _4gb = _1gb * 4;
 #pragma warning(disable : 4244) // warning C4244: 'initializing': conversion from 'uptr' to 'uint', possible loss of data
 #pragma warning(disable : 4267) // warning C4267: 'initializing': conversion from 'size_t' to 'uint', possible loss of data
 #endif
-
-#ifdef _MSC_VER
-#define _aligned_malloc(size, align) _aligned_malloc(size, align)
-#define _aligned_free(ptr) _aligned_free(ptr)
-#else
-#define _aligned_malloc(size, align) aligned_alloc(align, size)
-#define _aligned_free(ptr) free(ptr)
-#endif
