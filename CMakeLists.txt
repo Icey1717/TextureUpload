@@ -41,9 +41,9 @@ add_library(TextureUpload ${SOURCES})
 target_link_libraries(TextureUpload xbyak)
 
 if(MSVC)
-	target_compile_options(TextureUpload PRIVATE "-msse4.1")
+	target_compile_options(TextureUpload PUBLIC "-msse4.1")
 elseif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	target_compile_options(TextureUpload PRIVATE "-msse4.1")
+	target_compile_options(TextureUpload PUBLIC "-msse4.1")
 	target_link_libraries(TextureUpload rt)
 endif()
 
