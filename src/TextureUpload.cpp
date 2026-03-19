@@ -38,7 +38,7 @@ void TextureUpload::UploadPalette(uint8_t* pSrc, uint64_t bitBltBuf, uint64_t tr
 	m_mem.m_clut.Read32(TEX0, texa);
 }
 
-uint8_t* TextureUpload::UploadTexture(uint8_t* pSrc, uint64_t bitBltBuf, uint64_t trxPos, uint64_t trxReg, uint64_t tex0)
+TextureUpload::UploadBufferPtr TextureUpload::UploadTexture(uint8_t* pSrc, uint64_t bitBltBuf, uint64_t trxPos, uint64_t trxReg, uint64_t tex0)
 {
 	GIFRegBITBLTBUF bitbltbuf = *reinterpret_cast<GIFRegBITBLTBUF*>(&bitBltBuf);
 	GIFRegTRXPOS trxpos = *reinterpret_cast<GIFRegTRXPOS*>(&trxPos);
@@ -64,10 +64,10 @@ uint8_t* TextureUpload::UploadTexture(uint8_t* pSrc, uint64_t bitBltBuf, uint64_
 
 	// use per-texture buffer so we can compress the texture asynchronously and not block the GS thread
 	// must be 32 byte aligned for ReadTexture().
-	u8* buffer = static_cast<u8*>(_aligned_malloc(pitch * static_cast<u32>(read_height), 32));
+	UploadBufferPtr buffer = std::make_unique<UploadBuffer>(pitch * static_cast<u32>(read_height), 32, static_cast<uint32_t>(read_width), static_cast<uint32_t>(read_height));
 
 	GIFRegTEXA texa = {};
-	psm_.rtx(m_mem, m_mem.GetOffset(TEX0.TBP0, TEX0.TBW, TEX0.PSM), block_rect, buffer, pitch, texa);
+	psm_.rtx(m_mem, m_mem.GetOffset(TEX0.TBP0, TEX0.TBW, TEX0.PSM), block_rect, buffer->Get(), pitch, texa);
 
 	return buffer;
 }

@@ -32,6 +32,8 @@ set (SOURCES
 	"src/GSVector4i.h"
 	"src/GSVector8.h"
 	"src/GSVector8i.h"
+	"src/UploadBuffer.cpp"
+	"include/UploadBuffer.h"
 )
 
 add_library(TextureUpload ${SOURCES})
